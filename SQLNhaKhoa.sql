@@ -38,7 +38,7 @@ CREATE TABLE BENH_NHAN
  GioiTinh_BN  Nvarchar(5),
  CMND_BN Varchar(9) UNIQUE,
  SĐT_BN Varchar(11),
- DiaCHi_BN Nvarchar(100),
+ DiaChi_BN Nvarchar(100),
  BaoHiem Varchar(100)
 )
 
@@ -76,14 +76,14 @@ GO
 CREATE TABLE BENH_AN
 (
  MaBA int PRIMARY KEY NOT NULL DEFAULT 0,
- MaBN int,
- MaBS int,
- MaDT int,
- NgayKham datetime NOT NULL,
+ MaBN int NOT NULL DEFAULT N'trống',
+ MaBS int NOT NULL DEFAULT N'trống',
+ MaDT int NOT NULL DEFAULT N'trống',
+ NgayKham datetime NOT NULL DEFAULT 0,
  KetQua Nvarchar(100),
- NgayLap datetime,
- LichTaiKham datetime,
- ChuY Nvarchar(200),
+ NgayLap datetime NOT NULL DEFAULT 0,
+ LichTaiKham datetime NOT NULL DEFAULT N'trống',
+ ChuY Nvarchar(200) NOT NULL DEFAULT N'trống',
 
 ----------Khóa ngoại----------
  FOREIGN KEY(MaBN) REFERENCES dbo.BENH_NHAN(MaBN),
@@ -91,6 +91,9 @@ CREATE TABLE BENH_AN
  FOREIGN KEY(MaDT) REFERENCES dbo.DON_THUOC(MaDT)
 )
 GO
+
+ALTER TABLE BENH_AN
+	ALTER COLUMN LichTaiKham datetime NOT NULL DEFAULT 0
 
 ----------Bảng ĐĂNG NHẬP----------
 CREATE TABLE DANG_NHAP
@@ -168,13 +171,13 @@ INSERT INTO BAC_SI (MaBS, TenBS, NamSinh_BS, GioiTinh_BS, CMND_BS, SĐT_BS,DiaCh
 VALUES (101, N'Nguyễn Hữu Nam', '1977/08/18', N'Nam', 272859117, 0322458811, N'Quảng Nam', 1); 
 
 INSERT INTO BAC_SI (MaBS, TenBS, NamSinh_BS, GioiTinh_BS, CMND_BS, SĐT_BS, DiaChi_BS ,SoPhong) 
-VALUES (102, N'Võ Hoàng Yên', '1975/01/01', N'Nam', 272655209, 0339871273, N'Cà Mau', 2); 
+VALUES (102, N'Võ Hoàng Yên', '1975/01/01', N'Nam', 272655209, 0339871273, N'Cà Mau', 1); 
 
 INSERT INTO BAC_SI (MaBS, TenBS, NamSinh_BS, GioiTinh_BS, CMND_BS, SĐT_BS, DiaChi_BS, SoPhong) 
-VALUES (103, N'Huỳnh Hà Thúy Hằng', '1985/03/27', N'Nữ', 272655210, 0339871383, N'Đồng Nai', 3); 
+VALUES (103, N'Huỳnh Hà Thúy Hằng', '1985/03/27', N'Nữ', 272655210, 0339871383, N'Đồng Nai', 2); 
 
 INSERT INTO BAC_SI (MaBS, TenBS, NamSinh_BS, GioiTinh_BS, CMND_BS, SĐT_BS, DiaChi_BS, SoPhong) 
-VALUES (104, N'Trần Chí Oai', '1989/09/20', N'Nam', 272655211, 0339871294, N'Phú Yên', 4 );
+VALUES (104, N'Trần Chí Oai', '1989/09/20', N'Nam', 272655211, 0339871294, N'Phú Yên', 2);
 
                         ----------Bảng CA TRỰC----------
 INSERT INTO CA_TRUC (MaBS , NgayTruc, CaTruc) 
@@ -354,7 +357,7 @@ VALUES (413, 208, 103, '2022/01/08 14:00:00', N'Răng bị mẻ', '2022/01/08 14
 
 						----------Bảng TIẾP TÂN-----------
 INSERT INTO TIEP_TAN (MaTT, TenTT, NamSinh_TT, GioiTinh_TT, CMND_TT, SĐT_TT, DiaChi_TT) 
-VALUES (501, N'PNguyễn Thị Phương Nga', '1995/02/12', N'Nữ', 272859022, 0353279583, N'Hà Tĩnh');
+VALUES (501, N'Nguyễn Thị Phương Nga', '1995/02/12', N'Nữ', 272859022, 0353279583, N'Hà Tĩnh');
 
 INSERT INTO TIEP_TAN (MaTT, TenTT, NamSinh_TT, GioiTinh_TT, CMND_TT, SĐT_TT, DiaChi_TT) 
 VALUES (502, N'Phan Thị Kim Nhung', '2001/06/26', N'Nữ', 272859067, 0344256883, N'Đồng Nai');
@@ -493,47 +496,3 @@ VALUES (805, 211, '2022/01/14 08:00:00');
 
 INSERT INTO LICH_HEN_KHAM (MaLHK , MaBN, NgayGioHenKham) 
 VALUES (806, 208, '2022/01/14 14:00:00');
-						----------Truy vấn----------
----1.In ra danh sách bệnh nhân ở thành phố Hồ Chí Minh---
-SELECT MaBN, TenBN
-FROM BENH_NHAN
-WHERE DiaChi_BN = 'Tp Hồ Chí Minh'
-
----In ra danh sách bệnh án (MaBA, MaBN, MaBS) bị sâu răng---
-SELECT MaBA, MaBN, MaBS
-FROM BENH_AN
-WHERE KetQua = 'Sâu răng'
-
----In ra số hóa đơn và tổng tiền của bệnh nhân có mã 'BN08'---
-SELECT MaHD, TongTien
-FROM HOA_DON
-WHERE MaBN = 208
-
----In ra trị giá hóa đơn cao nhất và thấp nhất ---
-SELECT MAX(TongTien) AS MAX, MIN(TongTien) AS MIN
-FROM HOA_DON
-
----In trị giá trung bình của tất cả hóa đơn trong năm 2022---
-SELECT AVG(TongTien) TB
-FROM HOA_DON
-
----Trong 5 bệnh nhân có tổng tiền cao nhất, tìm bệnh nhân dùng nhiều dịch vụ nhất---khó vl?
-SELECT MaBN, TenBN
-FROM BENH_NHAN
-WHERE MaBN = (SELECT TOP 5 MaBN 
-FROM HOA_DON
-GROUP BY MaBN
-ORDER BY COUNT(MaHD) DESC) 
-
----Tìm dịch vụ (MaDV, TenDV) có tổng số lượng bệnh nhân thấp nhất trong năm 2022---
-SELECT MaDV, TenDV
-FROM DICH_VU
-WHERE MaDV = (SELECT TOP 1 MaDV
-FROM CHI_TIET_HOA_DON
-GROUP BY MaDV
-ORDER BY SUM(SoLuong) DESC)
-
----In ra danh sách bệnh nhân do bác sĩ Võ Hoàng Yên (BS02) điều trị---
-SELECT MaBS, TenBS
-FROM BAC_SI
-WHERE MaBS = 
