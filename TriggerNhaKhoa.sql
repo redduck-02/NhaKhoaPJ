@@ -49,7 +49,6 @@ VALUES (106, N'Phạm Kim Dung', '1960/08/18', N'Nữ', 272859118, 0322458856, N
 SELECT * FROM BAC_SI WHERE (Year(GETDATE()) - YEAR(NamSinh_BS)) > 55
 
 ---3. Check lịch hẹn khám lớn hơn ngày ---
-
 CREATE TRIGGER TG_CheckNgayKham ON LICH_HEN_KHAM FOR INSERT, UPDATE
 AS
 BEGIN
@@ -65,75 +64,7 @@ END
 INSERT INTO LICH_HEN_KHAM (MaLHK , MaBN, NgayGioHenKham) 
 VALUES (809, 213, '2022/01/09 08:15:00');
 
----4. Bệnh nhân đến khám và lưu lại thông tin bệnh nhân. Các bệnh nhân sẽ được trở thành thành viên và được phân biệt bằng mã riêng biệt.
----4.1:Xét theo tổng giá tiền từ hóa đơn để phân thẻ thành viên: từ 0-5tr là thẻ đồng, 5-10tr là thẻ bạc,  10-20tr thẻ là vàng, 20-50tr thẻ là kim cương---
-CREATE TRIGGER TG_Diemtichluy ON HOA_DON FOR INSERT, UPDATE
-AS
-BEGIN
-	DECLARE @tien Money;
-	DECLARE @MaBN Int;
-
-	SET @tien = (SELECT hd_Tmp.TongTien FROM HOA_DON, Inserted AS hd_Tmp
-	WHERE HOA_DON.MAHD = hd_Tmp.MaHD)
-
-	SET @MaBN = (SELECT hd_Tmp.MaBN FROM HOA_DON, Inserted AS hd_Tmp
-	WHERE HOA_DON.MAHD = hd_Tmp.MaHD)
-
-	IF(@tien >= 1000000 AND @tien < 5000000)
-	BEGIN
-		UPDATE BENH_NHAN SET KhuyenMai = N'Đồng' WHERE BENH_NHAN.MaBN = @MaBN
-	END
-	ELSE IF (@tien >= 5000000 AND @tien < 10000000)
-	BEGIN
-		UPDATE BENH_NHAN SET KhuyenMai = N'Bạc' WHERE BENH_NHAN.MaBN = @MaBN
-	END
-	ELSE IF (@tien >= 10000000 and @tien < 20000000)
-	BEGIN
-		UPDATE BENH_NHAN SET KhuyenMai = N'Vàng' WHERE BENH_NHAN.MaBN = @MaBN
-	END
-	ELSE
-	BEGIN
-		UPDATE BENH_NHAN SET KhuyenMai = N'Kim Cương' WHERE BENH_NHAN.MaBN = @MaBN
-	END
-END
----4.2:Mỗi thẻ sẽ đc giảm 2%, 5%, 10%, 15% trên 1 dv tương ứng cho các bậc trên---
-CREATE TRIGGER TG_Sale ON HOA_DON FOR INSERT, UPDATE
-AS
-BEGIN
-    DECLARE @Tien Money;
-	--DECLARE @KhuyenMai Nvarchar;
-	DECLARE @MaBN Int;
-
-	SET @Tien = (SELECT hd_Tmp.TongTien FROM HOA_DON, Inserted AS hd_Tmp
-	WHERE HOA_DON.MaHD = hd_Tmp.MaHD)
-
-	SET @MaBN = (SELECT hd_Tmp.MaBN FROM HOA_DON, Inserted AS hd_Tmp
-	WHERE HOA_DON.MAHD = hd_Tmp.MaHD)
-
-	IF(@tien >= 1000000 AND @tien < 5000000)
-	BEGIN
-		UPDATE HOA_DON SET TongTien = TongTien - (TongTien * 0.02) WHERE HOA_DON.MaBN = @MaBN
-	END
-	ELSE IF (@tien >= 1000000 AND @tien < 5000000)
-	BEGIN
-		UPDATE HOA_DON SET TongTien = TongTien - (TongTien * 0.05) WHERE HOA_DON.MaBN = @MaBN
-	END
-	ELSE IF (@tien >= 1000000 AND @tien < 5000000)
-	BEGIN
-		UPDATE HOA_DON SET TongTien = TongTien - (TongTien * 0.1) WHERE HOA_DON.MaBN = @MaBN
-	END
-	ELSE
-	BEGIN
-		UPDATE HOA_DON SET TongTien = TongTien - (TongTien * 0.15) WHERE HOA_DON.MaBN = @MaBN
-	END
-END
-
-SELECT KhuyenMai FROM BENH_NHAN where MaBN = 212
-
-INSERT INTO HOA_DON (MaHD, MaBN, MaTT, TongTien) 
-VALUES (716, 212, 504, 100000000);
-
---5.check ngày lập so với ngày khám 
+--4.check ngày lập so với ngày khám 
 
 create trigger tg_benhan on benh_an for insert ,update
 as
@@ -154,7 +85,7 @@ drop trigger tg_benhan
 INSERT INTO BENH_AN (MaBA , MaBN, MaBS, NgayKham, KetQua, NgayLap, ChuY) 
 VALUES (984, 211, 101, '2022/01/06 10:35:00', N'Sâu răng', '2022/01/07 10:36:00', N'No');
 
-------6. kiểm tra Ngày khám phải lớn hơn ngày sinh của bệnh nhân------
+------5. kiểm tra Ngày khám phải lớn hơn ngày sinh của bệnh nhân------
 create   or alter trigger kiem_tra_ngay_kham on BENH_AN
 after insert,update
 as if (exists (select * from inserted i join BENH_NHAN bn on i.MaBN = bn.MaBN where i.NgayKham<bn.NamSinh_BN))
@@ -167,7 +98,7 @@ INSERT INTO BENH_AN (MaBA , MaBN, MaBS, NgayKham, KetQua, NgayLap, ChuY)
 VALUES (433, 204, 102, '1900/01/02 14:00:00', N'Răng bị nhiễm kháng sinh ở mức độ nhẹ', '1900/01/02 14:30:00', N'No');
 
 
------7. Độ tuổi của nhân viên phải trên 18 tuổi 
+-----6. Độ tuổi của nhân viên phải trên 18 tuổi 
 create trigger trg_NhanVien on TIEP_TAN for insert
 as
 Begin
@@ -184,7 +115,7 @@ INSERT INTO TIEP_TAN (MaTT, TenTT, NamSinh_TT, GioiTinh_TT, CMND_TT, SĐT_TT, Di
 VALUES (5000, N'Nguyên', '2010/11/12', N'Nữ', 272, 0929650233, N'Vũng Tàu');
 
 
-----8. Ca trực chỉ có thể là Ca sáng hoạc Ca chiều ---------
+----7. Ca trực chỉ có thể là Ca sáng hoạc Ca chiều ---------
 create or alter trigger trg_ktraCaTruc
 on CA_TRUC
 FOR INSERT,UPDATE
@@ -214,3 +145,39 @@ END
 -- Thực thi
 INSERT INTO BAC_SI(MaBS , TenBS, NamSinh_BS, GioiTinh_BS, CMND_BS, SĐT_BS, DiaChi_BS, SoPhong) 
 VALUES (106, N'Nguyễn A', '1990-12-30', 'Nan', '272655723', '339877564', N'Hà Nội', 2);
+
+---3. Check lịch hẹn khám lớn hơn ngày ---
+CREATE OR ALTER TRIGGER TG_CheckNK ON LICH_HEN_KHAM FOR INSERT, UPDATE
+AS
+BEGIN
+	DECLARE @curentDate DateTime;
+	DECLARE @NgayKham Datetime;
+	SET @curentDate = (SELECT B.NgayGioHenKham FROM LICH_HEN_KHAM, inserted AS B
+	WHERE LICH_HEN_KHAM.MaBN = B.MaBN)
+	SET @NgayKham = (SELECT B.NgayKham FROM BENH_AN, inserted AS B
+	WHERE BENH_AN.MaBN = B.MaBN)
+	IF((@curentDate - @NgayKham >1) AND ( @curentDate - GETDATE()) < 0)
+	BEGIN 
+		PRINT('Ngày hẹ khám phải lớn hơn ngày khán và ngày hẹn khám bé hơn ngày hiện tại')
+	END
+END
+
+---3. cuối-
+CREATE TRIGGER Check_cau_co ON LICH_HEN_KHAM FOR INSERT, UPDATE
+AS
+BEGIN
+	DECLARE @NgayHenKham DateTime;
+	DECLARE @NgayKham DateTime
+	SET @NgayHenKham = (SELECT nhk.NgayGioHenKham FROM LICH_HEN_KHAM, inserted AS nhk
+	WHERE LICH_HEN_KHAM.MaBN = nhk.MaBN)
+	SET @NgayKham = (SELECT nk.NgayKham FROM BENH_AN, inserted AS nk
+	WHERE BENH_AN.MaBN = nk.MaBN)
+	IF(((@NgayHenKham - GETDATE()) < 1) AND ((@NgayHenKham - @NgayKham) > 1))
+	BEGIN 
+		PRINT('nhap sai')
+		rollback tran
+	END
+END
+
+INSERT INTO LICH_HEN_KHAM (MaLHK , MaBN, NgayGioHenKham) 
+VALUES (809, 213, '2022/01/09 08:15:00');

@@ -1,5 +1,6 @@
 ﻿CREATE DATABASE SQLNhaKhoaKim
 USE SQLNhaKhoaKim
+drop DATABASE SQLNhaKhoaKim
 
 GO
 ----------Bảng BÁC SĨ----------
@@ -77,10 +78,11 @@ CREATE TABLE BENH_AN
  MaBN int NOT NULL,
  MaBS int NOT NULL,
  MaDT int ,
- NgayKham datetime NOT NULL DEFAULT 0,
+ NgayKham datetime ,
  KetQua Nvarchar(100),
  NgayLap datetime NOT NULL DEFAULT 0,
  ChuY Nvarchar(200) ,
+ 
 
 ----------Khóa ngoại----------
  FOREIGN KEY(MaBN) REFERENCES dbo.BENH_NHAN(MaBN),
